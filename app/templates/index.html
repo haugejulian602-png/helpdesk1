@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Innmeldte saker</h2>
+
+{% if tickets %}
+  <ul style="list-style:none; padding:0;">
+    {% for t in tickets %}
+      <li style="border:1px solid #ddd; border-radius:10px; padding:12px; margin:10px 0;">
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+          <strong>#{{ t.id }} - {{ t.title }}</strong>
+          <span>{{ t.status }}</span>
+        </div>
+
+        <div style="color:#555; font-size:0.9rem;">
+          {{ t.created }} • Prioritet: {{ t.priority }}
+        </div>
+
+        <a href="{{ url_for('main.ticket', ticket_id=t.id) }}">Se detaljer</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Ingen saker enda.</p>
+{% endif %}
+{% endblock %}

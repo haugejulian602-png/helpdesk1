@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Helpdesk</title>
+</head>
+<body>
+  <header style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px; border-bottom:1px solid #ddd;">
+    <h1 style="margin:0;">
+      <a href="{{ url_for('main.index') }}" style="text-decoration:none; color:inherit;">Helpdesk</a>
+    </h1>
+    <a href="{{ url_for('main.new_ticket') }}">+ Ny sak</a>
+  </header>
+
+  <main style="max-width:800px; margin: 20px auto; padding: 0 12px;">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

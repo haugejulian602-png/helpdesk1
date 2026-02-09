@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>#{{ ticket.id }} - {{ ticket.title }}</h2>
+
+<div style="border:1px solid #ddd; border-radius:10px; padding:12px;">
+  <p><strong>Status:</strong> {{ ticket.status }}</p>
+  <p><strong>Prioritet:</strong> {{ ticket.priority }}</p>
+  <p><strong>Opprettet:</strong> {{ ticket.created }}</p>
+
+  <h3>Beskrivelse</h3>
+  <p>{{ ticket.description }}</p>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+    {% if ticket.status == "Åpen" %}
+      <form method="post" action="{{ url_for('main.close_ticket', ticket_id=ticket.id) }}">
+        <button type="submit" style="padding:8px 12px;">Lukk sak</button>
+      </form>
+    {% else %}
+      <span style="padding:8px 12px; border:1px solid #ccc; border-radius:8px;">Saken er lukket ✅</span>
+    {% endif %}
+
+    {% if is_admin %}
+      <form method="post"
+            action="{{ url_for('main.delete_ticket', ticket_id=ticket.id) }}"
+            onsubmit="return confirm('Er du sikker på at du vil slette denne saken?');">
+        <button type="submit" style="padding:8px 12px;">Slett sak (admin)</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<p style="margin-top:12px;">
+  <a href="{{ url_for('main.index') }}">← Tilbake til oversikt</a>
+</p>
+
+{% endblock %}
