@@ -8,9 +8,9 @@
 <p><b>Opprettet:</b> {{ ticket.created_at }}</p>
 
 {% if ticket.assignee %}
-<p><b>Ansvarlig:</b> {{ ticket.assignee }}</p>
+  <p><b>Ansvarlig:</b> {{ ticket.assignee }}</p>
 {% else %}
-<p><b>Ansvarlig:</b> (ikke satt)</p>
+  <p><b>Ansvarlig:</b> (ikke satt)</p>
 {% endif %}
 
 <hr>
@@ -20,7 +20,20 @@
 
 <hr>
 
+<h3>Kommentarer</h3>
+{% if ticket.comments and ticket.comments|length > 0 %}
+  <ul>
+    {% for c in ticket.comments %}
+      <li><b>{{ c.name }}</b> ({{ c.time }}): {{ c.text }}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Ingen kommentarer.</p>
+{% endif %}
+
 {% if is_admin %}
+  <hr>
+
   <h3>Oppdater status</h3>
   <form method="post" action="{{ url_for('main.set_status', ticket_id=ticket.id) }}">
     <select name="status">
@@ -41,18 +54,7 @@
 
   <hr>
 
-  <h3>Kommentarer</h3>
-  {% if ticket.comments and ticket.comments|length > 0 %}
-    <ul>
-      {% for c in ticket.comments %}
-        <li><b>{{ c.name }}</b> ({{ c.time }}): {{ c.text }}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>Ingen kommentarer.</p>
-  {% endif %}
-
-  <h4>Legg til kommentar</h4>
+  <h4>Legg til kommentar (admin)</h4>
   <form method="post" action="{{ url_for('main.add_comment', ticket_id=ticket.id) }}" style="max-width: 600px;">
     <input type="text" name="name" placeholder="Navn (valgfritt)" style="width: 220px;"><br><br>
     <textarea name="comment" rows="4" style="width:100%;" placeholder="Skriv kommentar..." required></textarea><br>
@@ -64,20 +66,6 @@
   <form method="post" action="{{ url_for('main.delete_ticket', ticket_id=ticket.id) }}" onsubmit="return confirm('Slette saken permanent?');">
     <button type="submit">Slett sak (admin)</button>
   </form>
-
-{% else %}
-  <p><i>Du er ikke admin. Du kan se saken, men kan ikke endre status/ansvarlig/kommentar eller slette.</i></p>
-
-  <h3>Kommentarer</h3>
-  {% if ticket.comments and ticket.comments|length > 0 %}
-    <ul>
-      {% for c in ticket.comments %}
-        <li><b>{{ c.name }}</b> ({{ c.time }}): {{ c.text }}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>Ingen kommentarer.</p>
-  {% endif %}
 {% endif %}
 
 <p style="margin-top:14px;"><a href="{{ url_for('main.index') }}">Tilbake til oversikt</a></p>

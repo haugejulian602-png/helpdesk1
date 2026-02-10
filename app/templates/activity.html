@@ -8,10 +8,22 @@
 {% else %}
   <ul>
     {% for e in log %}
-      <li>
-        <b>{{ e.time }}</b> - {{ e.action }}
+      <li style="margin-bottom: 10px;">
+        <b>{{ e.time }}</b> – {{ e.action }}
         {% if e.ticket_id %}(sak #{{ e.ticket_id }}){% endif %}
-        - {{ e.by }}
+        – {{ e.by }}
+        {% if e.ip %} – IP: {{ e.ip }}{% endif %}
+
+        {% if e.details %}
+          <div style="margin-top: 4px; padding-left: 12px;">
+            <small><b>Detaljer:</b></small>
+            <ul style="margin: 4px 0 0 14px;">
+              {% for k, v in e.details.items() %}
+                <li><small>{{ k }}: {{ v }}</small></li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
       </li>
     {% endfor %}
   </ul>

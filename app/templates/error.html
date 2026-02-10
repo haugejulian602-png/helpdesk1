@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Feil {{ code }}</h2>
+
+<p>{{ message }}</p>
+
+<p style="margin-top: 14px;">
+  <a href="{{ url_for('main.index') }}">Tilbake til forside</a>
+</p>
+
+{% endblock %}

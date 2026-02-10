@@ -33,14 +33,28 @@ def load_log():
         return []
 
 
-def log_action(action, ticket_id=None, by="admin"):
+def log_action(action, ticket_id=None, by="admin", ip=None, details=None):
+    """
+    Backwards compatible:
+    - gamle kall: log_action("...", ticket_id=1, by="admin") fungerer fortsatt
+    Nye felt:
+    - ip: request.remote_addr
+    - details: dict med ekstra info (valgfritt)
+    """
     entry = {
         "time": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "action": action,
         "ticket_id": ticket_id,
         "by": by,
     }
+
+    if ip:
+        entry["ip"] = ip
+    if isinstance(details, dict) and details:
+        entry["details"] = details
+
     log = load_log()
     log.append(entry)
+
     with LOG_FILE.open("w", encoding="utf-8") as f:
         json.dump(log, f, ensure_ascii=False, indent=2)

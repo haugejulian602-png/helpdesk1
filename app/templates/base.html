@@ -9,13 +9,29 @@
   <div style="max-width: 900px; margin: 30px auto; padding: 0 16px;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h1 style="margin:0;">Helpdesk</h1>
+
       <div style="display:flex; gap:14px; align-items:center;">
+        <a href="{{ url_for('main.index') }}">Forside</a>
         <a href="{{ url_for('main.new_ticket') }}">Ny sak</a>
+
         {% if is_admin %}
+          <a href="{{ url_for('main.my_work') }}">Min arbeidsliste</a>
           <a href="{{ url_for('main.activity') }}">Aktivitetslogg</a>
         {% endif %}
+
+        <span style="
+          margin-left: 8px;
+          padding: 4px 10px;
+          border: 1px solid #ddd;
+          border-radius: 999px;
+          font-size: 14px;
+          background: #f7f7f7;
+        ">
+          {% if is_admin %}Admin{% else %}Bruker{% endif %}
+        </span>
       </div>
     </div>
+
     <hr>
     {% block content %}{% endblock %}
   </div>
