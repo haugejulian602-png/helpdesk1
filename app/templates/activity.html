@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Aktivitetslogg (kun admin)</h2>
+
+{% if log|length == 0 %}
+  <p>Ingen logg enda.</p>
+{% else %}
+  <ul>
+    {% for e in log %}
+      <li>
+        <b>{{ e.time }}</b> - {{ e.action }}
+        {% if e.ticket_id %}(sak #{{ e.ticket_id }}){% endif %}
+        - {{ e.by }}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<p><a href="{{ url_for('main.index') }}">Tilbake</a></p>
+
+{% endblock %}

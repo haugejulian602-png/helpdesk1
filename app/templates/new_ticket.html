@@ -1,29 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
+
 <h2>Ny sak</h2>
 
-{% if error %}
-  <p style="color:red;"><strong>{{ error }}</strong></p>
-{% endif %}
+<form method="post" action="{{ url_for('main.create_ticket') }}" style="display:flex; flex-direction:column; gap:10px; max-width: 500px;">
+  <div>
+    <label for="title">Tittel</label><br>
+    <input id="title" name="title" type="text" required style="width:100%;">
+  </div>
 
-<form method="post" style="border:1px solid #ddd; border-radius:10px; padding:12px;">
-  <label>Tittel</label><br>
-  <input name="title" required style="width:100%; padding:8px; margin:6px 0 12px;"><br>
+  <div>
+    <label for="description">Beskrivelse</label><br>
+    <textarea id="description" name="description" rows="5" style="width:100%;"></textarea>
+  </div>
 
-  <label>Beskrivelse</label><br>
-  <textarea name="description" rows="5" required style="width:100%; padding:8px; margin:6px 0 12px;"></textarea><br>
+  <div>
+    <label for="priority">Prioritet</label><br>
+    <select id="priority" name="priority">
+      <option value="Lav">Lav</option>
+      <option value="Middels">Middels</option>
+      <option value="Høy">Høy</option>
+    </select>
+  </div>
 
-  <label>Prioritet</label><br>
-  <select name="priority" style="width:100%; padding:8px; margin:6px 0 12px;">
-    <option>Lav</option>
-    <option>Middels</option>
-    <option>Høy</option>
-  </select><br>
-
-  <button type="submit" style="padding:8px 12px;">Send inn sak</button>
+  <button type="submit">Opprett sak</button>
 </form>
 
-<p style="margin-top:12px;">
-  <a href="{{ url_for('main.index') }}">← Tilbake</a>
-</p>
+<p style="margin-top:14px;"><a href="{{ url_for('main.index') }}">Tilbake</a></p>
+
 {% endblock %}

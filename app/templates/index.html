@@ -1,25 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
+
 <h2>Innmeldte saker</h2>
 
-{% if tickets %}
-  <ul style="list-style:none; padding:0;">
-    {% for t in tickets %}
-      <li style="border:1px solid #ddd; border-radius:10px; padding:12px; margin:10px 0;">
-        <div style="display:flex; justify-content:space-between; gap:10px;">
-          <strong>#{{ t.id }} - {{ t.title }}</strong>
-          <span>{{ t.status }}</span>
-        </div>
+<form method="get" action="{{ url_for('main.index') }}" style="margin: 10px 0 18px 0;">
+  <input type="text" name="q" placeholder="Søk (tittel, status, ansvarlig...)" value="{{ q or '' }}" style="width: 320px;">
+  <button type="submit">Søk</button>
+  {% if q %}
+    <a href="{{ url_for('main.index') }}" style="margin-left:10px;">Nullstill</a>
+  {% endif %}
+</form>
 
-        <div style="color:#555; font-size:0.9rem;">
-          {{ t.created }} • Prioritet: {{ t.priority }}
-        </div>
-
-        <a href="{{ url_for('main.ticket', ticket_id=t.id) }}">Se detaljer</a>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
+{% if tickets|length == 0 %}
   <p>Ingen saker enda.</p>
+{% else %}
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    {% for t in tickets %}
+      <div style="border:1px solid #ddd; padding:12px; border-radius:8px; display:flex; justify-content:space-between;">
+        <div>
+          <div style="font-weight:600;">#{{ t.id }} - {{ t.title }}</div>
+          <div style="font-size: 13px; opacity: 0.8;">
+            Opprettet: {{ t.created_at }} • Prioritet: {{ t.priority }}
+            {% if t.assignee %}
+              • Ansvarlig: {{ t.assignee }}
+            {% endif %}
+          </div>
+          <a href="{{ url_for('main.ticket', ticket_id=t.id) }}">Se detaljer</a>
+        </div>
+        <div style="font-weight:600;">{{ t.status }}</div>
+      </div>
+    {% endfor %}
+  </div>
 {% endif %}
+
 {% endblock %}

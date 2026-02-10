@@ -1,108 +1,214 @@
 from flask import Blueprint, render_template, request, redirect, url_for, abort
 from datetime import datetime
-from .storage import load_tickets, save_tickets
+
+from .storage import load_tickets, save_tickets, load_log, log_action
 
 bp = Blueprint("main", __name__)
 
 tickets = load_tickets()
-next_id = (max([t["id"] for t in tickets]) + 1) if tickets else 1
+next_id = (max([t.get("id", 0) for t in tickets], default=0) + 1)
 
 
 def is_admin():
-    return request.remote_addr in ("127.0.0.1", "::1")
+    ip = request.remote_addr or ""
+    return ip in ("127.0.0.1", "::1")
 
 
-def find_ticket(ticket_id: int):
+def require_admin():
+    if not is_admin():
+        abort(403)
+
+
+def normalize_ticket(t):
+    t.setdefault("id", 0)
+    t.setdefault("title", "")
+    t.setdefault("description", "")
+    t.setdefault("priority", "Lav")
+    t.setdefault("status", "Åpen")
+    t.setdefault("created_at", datetime.now().strftime("%Y-%m-%d %H:%M"))
+    t.setdefault("assignee", "")
+    t.setdefault("comments", [])
+    if not isinstance(t.get("comments"), list):
+        t["comments"] = []
+    return t
+
+
+def normalize_all():
+    global tickets, next_id
+    changed = False
+    for i, t in enumerate(tickets):
+        before = dict(t)
+        tickets[i] = normalize_ticket(t)
+        if tickets[i] != before:
+            changed = True
+    if changed:
+        save_tickets(tickets)
+    next_id = (max([t.get("id", 0) for t in tickets], default=0) + 1)
+
+
+def find_ticket(ticket_id):
     for t in tickets:
-        if t["id"] == ticket_id:
+        if t.get("id") == ticket_id:
             return t
     return None
 
 
-def print_all_tickets():
-    print("\n--- ALLE SAKER ---")
-    if not tickets:
-        print("Ingen saker.")
-    else:
-        for t in tickets:
-            print(f"#{t['id']} | {t['status']} | {t['priority']} | {t['title']}")
-    print("--- SLUTT ---\n")
+normalize_all()
 
 
-@bp.route("/")
+@bp.route("/", methods=["GET"])
 def index():
-    return render_template("index.html", tickets=list(reversed(tickets)), is_admin=is_admin())
+    q = (request.args.get("q") or "").strip().lower()
+
+    normalized = [normalize_ticket(t) for t in tickets]
+    sorted_tickets = sorted(normalized, key=lambda x: x.get("id", 0), reverse=True)
+
+    if q:
+        def match(t):
+            return (
+                q in (t.get("title", "").lower())
+                or q in (t.get("description", "").lower())
+                or q in (t.get("status", "").lower())
+                or q in (t.get("assignee", "").lower())
+            )
+        sorted_tickets = [t for t in sorted_tickets if match(t)]
+
+    return render_template("index.html", tickets=sorted_tickets, is_admin=is_admin(), q=q)
 
 
-@bp.route("/new", methods=["GET", "POST"])
+@bp.route("/new", methods=["GET"])
 def new_ticket():
-    global next_id
-
-    if request.method == "POST":
-        title = request.form.get("title", "").strip()
-        description = request.form.get("description", "").strip()
-        priority = request.form.get("priority", "Lav")
-
-        if not title or not description:
-            return render_template("new_ticket.html", error="Fyll inn tittel og beskrivelse!", is_admin=is_admin())
-
-        ticket = {
-            "id": next_id,
-            "title": title,
-            "description": description,
-            "priority": priority,
-            "status": "Åpen",
-            "created": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        }
-
-        tickets.append(ticket)
-        next_id += 1
-
-        save_tickets(tickets)
-        print("NY SAK:", ticket)
-        print_all_tickets()
-
-        return redirect(url_for("main.index"))
-
-    return render_template("new_ticket.html", error=None, is_admin=is_admin())
+    return render_template("new_ticket.html", is_admin=is_admin())
 
 
-@bp.route("/ticket/<int:ticket_id>")
+@bp.route("/create", methods=["POST"])
+def create_ticket():
+    global next_id, tickets
+
+    title = (request.form.get("title") or "").strip()
+    description = (request.form.get("description") or "").strip()
+    priority = (request.form.get("priority") or "Lav").strip()
+
+    if not title:
+        return "Tittel kan ikke være tom", 400
+
+    t = {
+        "id": next_id,
+        "title": title,
+        "description": description,
+        "priority": priority if priority else "Lav",
+        "status": "Åpen",
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "assignee": "",
+        "comments": [],
+    }
+    tickets.append(t)
+    next_id += 1
+    save_tickets(tickets)
+
+    log_action("Opprettet sak", ticket_id=t["id"], by="user")
+    return redirect(url_for("main.index"))
+
+
+@bp.route("/ticket/<int:ticket_id>", methods=["GET"])
 def ticket(ticket_id):
     t = find_ticket(ticket_id)
     if not t:
         return "Fant ikke saken (404)", 404
+    t = normalize_ticket(t)
     return render_template("ticket.html", ticket=t, is_admin=is_admin())
 
 
-@bp.route("/ticket/<int:ticket_id>/close", methods=["POST"])
-def close_ticket(ticket_id):
-    t = find_ticket(ticket_id)
-    if t:
-        t["status"] = "Lukket"
-        save_tickets(tickets)
-        print(f"LUKKET SAK: #{ticket_id}")
-        print_all_tickets()
+@bp.route("/ticket/<int:ticket_id>/status", methods=["POST"])
+def set_status(ticket_id):
+    require_admin()
 
+    t = find_ticket(ticket_id)
+    if not t:
+        return "Fant ikke saken (404)", 404
+
+    status = (request.form.get("status") or "").strip()
+    if status not in ("Åpen", "Pågår", "Lukket"):
+        return "Ugyldig status", 400
+
+    old = t.get("status", "")
+    t["status"] = status
+    normalize_ticket(t)
+    save_tickets(tickets)
+
+    log_action(f"Endret status: {old} -> {status}", ticket_id=ticket_id, by="admin")
+    return redirect(url_for("main.ticket", ticket_id=ticket_id))
+
+
+@bp.route("/ticket/<int:ticket_id>/assign", methods=["POST"])
+def assign(ticket_id):
+    require_admin()
+
+    t = find_ticket(ticket_id)
+    if not t:
+        return "Fant ikke saken (404)", 404
+
+    assignee = (request.form.get("assignee") or "").strip()
+    old = t.get("assignee", "")
+    t["assignee"] = assignee
+    normalize_ticket(t)
+    save_tickets(tickets)
+
+    log_action(f"Endret ansvarlig: {old} -> {assignee}", ticket_id=ticket_id, by="admin")
+    return redirect(url_for("main.ticket", ticket_id=ticket_id))
+
+
+@bp.route("/ticket/<int:ticket_id>/comment", methods=["POST"])
+def add_comment(ticket_id):
+    require_admin()
+
+    t = find_ticket(ticket_id)
+    if not t:
+        return "Fant ikke saken (404)", 404
+
+    normalize_ticket(t)
+
+    name = (request.form.get("name") or "admin").strip()
+    text = (request.form.get("comment") or "").strip()
+    if not text:
+        return redirect(url_for("main.ticket", ticket_id=ticket_id))
+
+    t["comments"].append(
+        {
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "name": name,
+            "text": text,
+        }
+    )
+    save_tickets(tickets)
+
+    log_action("La til kommentar", ticket_id=ticket_id, by="admin")
     return redirect(url_for("main.ticket", ticket_id=ticket_id))
 
 
 @bp.route("/ticket/<int:ticket_id>/delete", methods=["POST"])
 def delete_ticket(ticket_id):
-    if not is_admin():
-        abort(403)
+    require_admin()
 
-    global tickets
-    tickets = [t for t in tickets if t["id"] != ticket_id]
+    t = find_ticket(ticket_id)
+    if not t:
+        return "Fant ikke saken (404)", 404
+
+    tickets.remove(t)
     save_tickets(tickets)
 
-    print(f"SLETTET SAK: #{ticket_id}")
-    print_all_tickets()
-
+    log_action("Slettet sak", ticket_id=ticket_id, by="admin")
     return redirect(url_for("main.index"))
 
 
-@bp.route("/debug/print")
-def debug_print():
-    print_all_tickets()
-    return "Skrev alle saker i terminalen ✅"
+@bp.route("/activity", methods=["GET"])
+def activity():
+    require_admin()
+    log = load_log()
+    log = list(reversed(log))
+    return render_template("activity.html", log=log, is_admin=True)
+
+
+@bp.app_errorhandler(403)
+def forbidden(_e):
+    return "403: Du har ikke tilgang til denne handlingen.", 403
