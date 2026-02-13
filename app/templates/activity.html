@@ -1,34 +1,44 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Aktivitetslogg (kun admin)</h2>
+<section class="card">
+  <h2 class="section-title">Aktivitetslogg</h2>
+  <p class="meta">Viser siste endringer (kun admin).</p>
 
-{% if log|length == 0 %}
-  <p>Ingen logg enda.</p>
-{% else %}
-  <ul>
-    {% for e in log %}
-      <li style="margin-bottom: 10px;">
-        <b>{{ e.time }}</b> – {{ e.action }}
-        {% if e.ticket_id %}(sak #{{ e.ticket_id }}){% endif %}
-        – {{ e.by }}
-        {% if e.ip %} – IP: {{ e.ip }}{% endif %}
+  <hr class="hr">
 
-        {% if e.details %}
-          <div style="margin-top: 4px; padding-left: 12px;">
-            <small><b>Detaljer:</b></small>
-            <ul style="margin: 4px 0 0 14px;">
-              {% for k, v in e.details.items() %}
-                <li><small>{{ k }}: {{ v }}</small></li>
-              {% endfor %}
-            </ul>
+  {% if log|length == 0 %}
+    <p class="meta">Ingen logg enda.</p>
+  {% else %}
+    <div class="ticket-list">
+      {% for e in log %}
+        <div class="ticket-item">
+          <div>
+            <h3 style="margin:0 0 6px; font-size:15px;">{{ e.action }}</h3>
+            <div class="meta">
+              {{ e.time }}
+              {% if e.ticket_id %} • sak #{{ e.ticket_id }}{% endif %}
+              • {{ e.by }}
+              {% if e.ip %} • IP: {{ e.ip }}{% endif %}
+            </div>
+
+            {% if e.details %}
+              <div class="meta" style="margin-top:6px;">
+                <b>Detaljer:</b>
+                {% for k, v in e.details.items() %}
+                  <span class="pill" style="margin-right:6px;">{{ k }}: {{ v }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
           </div>
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
-<p><a href="{{ url_for('main.index') }}">Tilbake</a></p>
+  <div class="footer-link">
+    <a href="{{ url_for('main.index') }}">Tilbake</a>
+  </div>
+</section>
 
 {% endblock %}

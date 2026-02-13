@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Feil {{ code }}</h2>
+<section class="card">
+  <h2 class="section-title">Feil {{ code }}</h2>
+  <p class="meta">{{ message }}</p>
 
-<p>{{ message }}</p>
-
-<p style="margin-top: 14px;">
-  <a href="{{ url_for('main.index') }}">Tilbake til forside</a>
-</p>
+  <div class="footer-link">
+    <a class="btn" href="{{ url_for('main.index') }}">Tilbake til forside</a>
+  </div>
+</section>
 
 {% endblock %}

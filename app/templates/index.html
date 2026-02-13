@@ -1,36 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Innmeldte saker</h2>
+<section class="card">
+  <h2 class="section-title">Innmeldte saker</h2>
 
-<form method="get" action="{{ url_for('main.index') }}" style="margin: 10px 0 18px 0;">
-  <input type="text" name="q" placeholder="Søk (tittel, status, ansvarlig...)" value="{{ q or '' }}" style="width: 320px;">
-  <button type="submit">Søk</button>
-  {% if q %}
-    <a href="{{ url_for('main.index') }}" style="margin-left:10px;">Nullstill</a>
-  {% endif %}
-</form>
+  <form method="get" action="{{ url_for('main.index') }}" class="row" style="margin-top: 10px;">
+    <input class="input" type="text" name="q" placeholder="Søk (tittel, status, ansvarlig, kommentarer...)" value="{{ q or '' }}" style="max-width: 520px;">
+    <button class="btn btn-primary" type="submit">Søk</button>
+  </form>
 
-{% if tickets|length == 0 %}
-  <p>Ingen saker enda.</p>
-{% else %}
-  <div style="display:flex; flex-direction:column; gap:10px;">
-    {% for t in tickets %}
-      <div style="border:1px solid #ddd; padding:12px; border-radius:8px; display:flex; justify-content:space-between;">
-        <div>
-          <div style="font-weight:600;">#{{ t.id }} - {{ t.title }}</div>
-          <div style="font-size: 13px; opacity: 0.8;">
-            Opprettet: {{ t.created_at }} • Prioritet: {{ t.priority }}
-            {% if t.assignee %}
-              • Ansvarlig: {{ t.assignee }}
+  <hr class="hr">
+
+  {% if tickets and tickets|length > 0 %}
+    <div class="ticket-list">
+      {% for t in tickets %}
+        <div class="ticket-item">
+          <div>
+            <h3>#{{ t.id }} – {{ t.title }}</h3>
+            <div class="meta">
+              Opprettet: {{ t.created_at }} • Prioritet: {{ t.priority }}
+              {% if t.assignee %} • Ansvarlig: {{ t.assignee }}{% endif %}
+            </div>
+            <div style="margin-top:8px;">
+              <a href="{{ url_for('main.ticket', ticket_id=t.id) }}">Se detaljer</a>
+            </div>
+          </div>
+
+          <div class="right">
+            {% if t.status == "Åpen" %}
+              <span class="pill open">Åpen</span>
+            {% elif t.status == "Pågår" %}
+              <span class="pill progress">Pågår</span>
+            {% else %}
+              <span class="pill closed">Lukket</span>
             {% endif %}
           </div>
-          <a href="{{ url_for('main.ticket', ticket_id=t.id) }}">Se detaljer</a>
         </div>
-        <div style="font-weight:600;">{{ t.status }}</div>
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="meta">Ingen saker enda. Trykk “Ny sak” for å opprette.</p>
+  {% endif %}
+</section>
 
 {% endblock %}

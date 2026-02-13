@@ -1,31 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Ny sak</h2>
+<section class="card">
+  <h2 class="section-title">Ny sak</h2>
+  <p class="meta">Fyll inn tittel, beskrivelse og prioritet.</p>
 
-<form method="post" action="{{ url_for('main.create_ticket') }}" style="display:flex; flex-direction:column; gap:10px; max-width: 500px;">
-  <div>
-    <label for="title">Tittel</label><br>
-    <input id="title" name="title" type="text" required style="width:100%;">
-  </div>
+  <hr class="hr">
 
-  <div>
-    <label for="description">Beskrivelse</label><br>
-    <textarea id="description" name="description" rows="5" style="width:100%;"></textarea>
-  </div>
+  <form method="post" action="{{ url_for('main.create_ticket') }}" class="form-grid">
+    <div>
+      <label><b>Tittel</b></label><br>
+      <input class="input" type="text" name="title" required>
+    </div>
 
-  <div>
-    <label for="priority">Prioritet</label><br>
-    <select id="priority" name="priority">
-      <option value="Lav">Lav</option>
-      <option value="Middels">Middels</option>
-      <option value="Høy">Høy</option>
-    </select>
-  </div>
+    <div>
+      <label><b>Beskrivelse</b></label><br>
+      <textarea class="textarea" name="description" placeholder="Beskriv problemet kort og tydelig..."></textarea>
+    </div>
 
-  <button type="submit">Opprett sak</button>
-</form>
+    <div>
+      <label><b>Prioritet</b></label><br>
+      <select class="select" name="priority">
+        <option value="Lav">Lav</option>
+        <option value="Medium">Medium</option>
+        <option value="Høy">Høy</option>
+      </select>
+    </div>
 
-<p style="margin-top:14px;"><a href="{{ url_for('main.index') }}">Tilbake</a></p>
+    <div class="row">
+      <button class="btn btn-primary" type="submit">Opprett sak</button>
+      <a class="btn" href="{{ url_for('main.index') }}">Avbryt</a>
+    </div>
+  </form>
+</section>
 
 {% endblock %}

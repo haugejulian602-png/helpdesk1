@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Helpdesk</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div style="max-width: 900px; margin: 30px auto; padding: 0 16px;">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h1 style="margin:0;">Helpdesk</h1>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <h1>Helpdesk</h1>
+        <small>Enkel sakshåndtering (Flask)</small>
+      </div>
 
-      <div style="display:flex; gap:14px; align-items:center;">
+      <nav class="nav">
         <a href="{{ url_for('main.index') }}">Forside</a>
         <a href="{{ url_for('main.new_ticket') }}">Ny sak</a>
 
@@ -19,21 +23,15 @@
           <a href="{{ url_for('main.activity') }}">Aktivitetslogg</a>
         {% endif %}
 
-        <span style="
-          margin-left: 8px;
-          padding: 4px 10px;
-          border: 1px solid #ddd;
-          border-radius: 999px;
-          font-size: 14px;
-          background: #f7f7f7;
-        ">
-          {% if is_admin %}Admin{% else %}Bruker{% endif %}
+        <span class="badge">
+          Rolle: <strong>{% if is_admin %}Admin{% else %}Bruker{% endif %}</strong>
         </span>
-      </div>
-    </div>
+      </nav>
+    </header>
 
-    <hr>
-    {% block content %}{% endblock %}
+    <main class="main">
+      {% block content %}{% endblock %}
+    </main>
   </div>
 </body>
 </html>

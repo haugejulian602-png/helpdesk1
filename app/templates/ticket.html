@@ -1,73 +1,93 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>Sak #{{ ticket.id }} - {{ ticket.title }}</h2>
+<section class="card">
+  <h2 class="section-title">Sak #{{ ticket.id }} – {{ ticket.title }}</h2>
 
-<p><b>Status:</b> {{ ticket.status }}</p>
-<p><b>Prioritet:</b> {{ ticket.priority }}</p>
-<p><b>Opprettet:</b> {{ ticket.created_at }}</p>
+  <div class="row" style="justify-content:space-between;">
+    <div class="meta">
+      Opprettet: {{ ticket.created_at }} • Prioritet: {{ ticket.priority }}
+      {% if ticket.assignee %} • Ansvarlig: {{ ticket.assignee }}{% else %} • Ansvarlig: (ikke satt){% endif %}
+    </div>
 
-{% if ticket.assignee %}
-  <p><b>Ansvarlig:</b> {{ ticket.assignee }}</p>
-{% else %}
-  <p><b>Ansvarlig:</b> (ikke satt)</p>
-{% endif %}
+    <div>
+      {% if ticket.status == "Åpen" %}
+        <span class="pill open">Åpen</span>
+      {% elif ticket.status == "Pågår" %}
+        <span class="pill progress">Pågår</span>
+      {% else %}
+        <span class="pill closed">Lukket</span>
+      {% endif %}
+    </div>
+  </div>
 
-<hr>
+  <hr class="hr">
 
-<h3>Beskrivelse</h3>
-<p style="white-space:pre-wrap;">{{ ticket.description }}</p>
+  <h3 class="section-title" style="font-size:18px;">Beskrivelse</h3>
+  <p style="white-space:pre-wrap; margin-top:6px;">{{ ticket.description }}</p>
 
-<hr>
+  <hr class="hr">
 
-<h3>Kommentarer</h3>
-{% if ticket.comments and ticket.comments|length > 0 %}
-  <ul>
+  <h3 class="section-title" style="font-size:18px;">Kommentarer</h3>
+  {% if ticket.comments and ticket.comments|length > 0 %}
     {% for c in ticket.comments %}
-      <li><b>{{ c.name }}</b> ({{ c.time }}): {{ c.text }}</li>
+      <div class="comment">
+        <div class="meta"><b>{{ c.name }}</b> • {{ c.time }}</div>
+        <div style="margin-top:6px;">{{ c.text }}</div>
+      </div>
     {% endfor %}
-  </ul>
-{% else %}
-  <p>Ingen kommentarer.</p>
-{% endif %}
+  {% else %}
+    <p class="meta">Ingen kommentarer.</p>
+  {% endif %}
 
-{% if is_admin %}
-  <hr>
+  {% if is_admin %}
+    <hr class="hr">
 
-  <h3>Oppdater status</h3>
-  <form method="post" action="{{ url_for('main.set_status', ticket_id=ticket.id) }}">
-    <select name="status">
-      <option value="Åpen" {% if ticket.status == "Åpen" %}selected{% endif %}>Åpen</option>
-      <option value="Pågår" {% if ticket.status == "Pågår" %}selected{% endif %}>Pågår</option>
-      <option value="Lukket" {% if ticket.status == "Lukket" %}selected{% endif %}>Lukket</option>
-    </select>
-    <button type="submit">Lagre</button>
-  </form>
+    <h3 class="section-title" style="font-size:18px;">Admin</h3>
 
-  <hr>
+    <div class="card" style="box-shadow:none; border-radius: 12px; padding: 14px; border: 1px dashed var(--line);">
+      <div class="form-grid" style="max-width: 720px;">
+        <div>
+          <label><b>Oppdater status</b></label>
+          <form method="post" action="{{ url_for('main.set_status', ticket_id=ticket.id) }}" class="row">
+            <select class="select" name="status" style="max-width: 240px;">
+              <option value="Åpen" {% if ticket.status == "Åpen" %}selected{% endif %}>Åpen</option>
+              <option value="Pågår" {% if ticket.status == "Pågår" %}selected{% endif %}>Pågår</option>
+              <option value="Lukket" {% if ticket.status == "Lukket" %}selected{% endif %}>Lukket</option>
+            </select>
+            <button class="btn btn-primary" type="submit">Lagre</button>
+          </form>
+        </div>
 
-  <h3>Sett ansvarlig</h3>
-  <form method="post" action="{{ url_for('main.assign', ticket_id=ticket.id) }}">
-    <input type="text" name="assignee" value="{{ ticket.assignee or '' }}" placeholder="Navn">
-    <button type="submit">Lagre</button>
-  </form>
+        <div>
+          <label><b>Sett ansvarlig</b></label>
+          <form method="post" action="{{ url_for('main.assign', ticket_id=ticket.id) }}" class="row">
+            <input class="input" type="text" name="assignee" value="{{ ticket.assignee or '' }}" placeholder="Navn" style="max-width: 320px;">
+            <button class="btn btn-primary" type="submit">Lagre</button>
+          </form>
+        </div>
 
-  <hr>
+        <div>
+          <label><b>Legg til kommentar</b></label>
+          <form method="post" action="{{ url_for('main.add_comment', ticket_id=ticket.id) }}" class="form-grid">
+            <input class="input" type="text" name="name" placeholder="Navn (valgfritt)">
+            <textarea class="textarea" name="comment" placeholder="Skriv kommentar..." required></textarea>
+            <button class="btn btn-primary" type="submit">Legg til</button>
+          </form>
+        </div>
 
-  <h4>Legg til kommentar (admin)</h4>
-  <form method="post" action="{{ url_for('main.add_comment', ticket_id=ticket.id) }}" style="max-width: 600px;">
-    <input type="text" name="name" placeholder="Navn (valgfritt)" style="width: 220px;"><br><br>
-    <textarea name="comment" rows="4" style="width:100%;" placeholder="Skriv kommentar..." required></textarea><br>
-    <button type="submit">Legg til</button>
-  </form>
+        <div>
+          <form method="post" action="{{ url_for('main.delete_ticket', ticket_id=ticket.id) }}" onsubmit="return confirm('Slette saken permanent?');">
+            <button class="btn btn-danger" type="submit">Slett sak</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 
-  <hr>
-
-  <form method="post" action="{{ url_for('main.delete_ticket', ticket_id=ticket.id) }}" onsubmit="return confirm('Slette saken permanent?');">
-    <button type="submit">Slett sak (admin)</button>
-  </form>
-{% endif %}
-
-<p style="margin-top:14px;"><a href="{{ url_for('main.index') }}">Tilbake til oversikt</a></p>
+  <div class="footer-link">
+    <a href="{{ url_for('main.index') }}">Tilbake til oversikt</a>
+  </div>
+</section>
 
 {% endblock %}

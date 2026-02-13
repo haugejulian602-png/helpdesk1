@@ -1,27 +1,44 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>Min arbeidsliste</h2>
 
-<p>
-  <a href="{{ url_for('main.index') }}">Tilbake</a>
-</p>
+<section class="card">
+  <h2 class="section-title">Min arbeidsliste</h2>
+  <p class="meta">Her vises aktive saker (Åpen/Pågår) som er tildelt Julian eller ikke tildelt.</p>
 
-<p>Her vises saker som er Åpen eller Pågår.</p>
+  <hr class="hr">
 
-{% if tickets and tickets|length > 0 %}
-  {% for t in tickets %}
-    <div style="border:1px solid #ddd; padding:12px; border-radius:8px; margin-bottom:10px;">
-      <b>#{{ t.id }} - {{ t.title }}</b><br>
-      <small>{{ t.created_at }} | Prioritet: {{ t.priority }}</small><br>
-      {% if t.assignee %}
-        <small>Ansvarlig: {{ t.assignee }}</small><br>
-      {% endif %}
-      <small>Status: {{ t.status }}</small><br>
-      <a href="{{ url_for('main.ticket', ticket_id=t.id) }}">Se detaljer</a>
+  {% if tickets and tickets|length > 0 %}
+    <div class="ticket-list">
+      {% for t in tickets %}
+        <div class="ticket-item">
+          <div>
+            <h3>#{{ t.id }} – {{ t.title }}</h3>
+            <div class="meta">
+              Opprettet: {{ t.created_at }} • Prioritet: {{ t.priority }}
+              {% if t.assignee %} • Ansvarlig: {{ t.assignee }}{% endif %}
+            </div>
+            <div style="margin-top:8px;">
+              <a href="{{ url_for('main.ticket', ticket_id=t.id) }}">Se detaljer</a>
+            </div>
+          </div>
+
+          <div class="right">
+            {% if t.status == "Åpen" %}
+              <span class="pill open">Åpen</span>
+            {% else %}
+              <span class="pill progress">Pågår</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
     </div>
-  {% endfor %}
-{% else %}
-  <p>Ingen aktive saker akkurat nå.</p>
-{% endif %}
+  {% else %}
+    <p class="meta">Ingen aktive saker akkurat nå.</p>
+  {% endif %}
+
+  <div class="footer-link">
+    <a href="{{ url_for('main.index') }}">Tilbake</a>
+  </div>
+</section>
+
 {% endblock %}
