@@ -1,60 +1,57 @@
-import json
-from pathlib import Path
-from datetime import datetime
-
-TICKETS_FILE = Path("tickets.json")
-LOG_FILE = Path("activity_log.json")
-
+from .db import get_db
 
 def load_tickets():
-    if not TICKETS_FILE.exists():
-        return []
-    try:
-        with TICKETS_FILE.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, list) else []
-    except Exception:
-        return []
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT * FROM tickets ORDER BY id DESC")
+    tickets = cur.fetchall()
+    conn.close()
+    return tickets
 
+def create_ticket(title, description):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        INSERT INTO tickets (title, description, status, created_at)
+        VALUES (%s, %s, %s, DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i'))
+        """,
+        (title, description, "Åpen")
+    )
+    conn.commit()
+    conn.close()
 
-def save_tickets(tickets):
-    with TICKETS_FILE.open("w", encoding="utf-8") as f:
-        json.dump(tickets, f, ensure_ascii=False, indent=2)
+def get_ticket(ticket_id):
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT * FROM tickets WHERE id = %s", (ticket_id,))
+    ticket = cur.fetchone()
+    conn.close()
+    return ticket
 
+def update_ticket_status(ticket_id, status):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE tickets SET status = %s WHERE id = %s",
+        (status, ticket_id)
+    )
+    conn.commit()
+    conn.close()
 
-def load_log():
-    if not LOG_FILE.exists():
-        return []
-    try:
-        with LOG_FILE.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, list) else []
-    except Exception:
-        return []
-
-
-def log_action(action, ticket_id=None, by="admin", ip=None, details=None):
-    """
-    Backwards compatible:
-    - gamle kall: log_action("...", ticket_id=1, by="admin") fungerer fortsatt
-    Nye felt:
-    - ip: request.remote_addr
-    - details: dict med ekstra info (valgfritt)
-    """
-    entry = {
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "action": action,
-        "ticket_id": ticket_id,
-        "by": by,
-    }
-
-    if ip:
-        entry["ip"] = ip
-    if isinstance(details, dict) and details:
-        entry["details"] = details
-
-    log = load_log()
-    log.append(entry)
-
-    with LOG_FILE.open("w", encoding="utf-8") as f:
-        json.dump(log, f, ensure_ascii=False, indent=2)
+def delete_ticket(ticket_id):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM tickets WHERE id = %s", (ticket_id,))
+    conn.commit()
+    conn.close()
+    def find_user(username, password):
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute(
+        "SELECT username FROM users WHERE username=%s AND password=%s",
+        (username, password)
+    )
+    user = cur.fetchone()
+    conn.close()
+    return user 
