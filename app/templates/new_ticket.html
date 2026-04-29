@@ -1,37 +1,12 @@
-{% extends "base.html" %}
-{% block content %}
+check = require_login()
+if check:
+    return check
+<h1>Ny sak</h1>
 
-<section class="card">
-  <h2 class="section-title">Ny sak</h2>
-  <p class="meta">Fyll inn tittel, beskrivelse og prioritet.</p>
+<form method="POST" action="/create">
+  <input name="title" placeholder="Tittel"><br>
+  <textarea name="description" placeholder="Beskrivelse"></textarea><br>
+  <button type="submit">Opprett</button>
+</form>
 
-  <hr class="hr">
-
-  <form method="post" action="{{ url_for('main.create_ticket') }}" class="form-grid">
-    <div>
-      <label><b>Tittel</b></label><br>
-      <input class="input" type="text" name="title" required>
-    </div>
-
-    <div>
-      <label><b>Beskrivelse</b></label><br>
-      <textarea class="textarea" name="description" placeholder="Beskriv problemet kort og tydelig..."></textarea>
-    </div>
-
-    <div>
-      <label><b>Prioritet</b></label><br>
-      <select class="select" name="priority">
-        <option value="Lav">Lav</option>
-        <option value="Medium">Medium</option>
-        <option value="Høy">Høy</option>
-      </select>
-    </div>
-
-    <div class="row">
-      <button class="btn btn-primary" type="submit">Opprett sak</button>
-      <a class="btn" href="{{ url_for('main.index') }}">Avbryt</a>
-    </div>
-  </form>
-</section>
-
-{% endblock %}
+<a href="/">Tilbake</a>

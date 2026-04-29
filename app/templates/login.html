@@ -1,0 +1,11 @@
+<h1>logg inn</h1>
+
+{% if error %}
+<p>{{ error }}</p>
+{% endif %}
+
+<form method="POST">
+  <input name="username" placeholder="brukernavn"><br>
+  <input name="password" type="password" placeholder="passord"><br>
+  <button type="submit">logg inn</button>
+</form>
